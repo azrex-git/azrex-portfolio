@@ -1,0 +1,106 @@
+---
+import { portfolio } from '../data/portfolio';
+import '../styles/global.css';
+const project = portfolio.projects[0];
+---
+<!doctype html>
+<html lang="en" class="experience-static">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Akashjeet Dutta — first-year student and developer. Exploring Python, accessibility, and the things worth building." />
+    <meta name="theme-color" content="#08090d" />
+    <title>Akashjeet Dutta — A space for things I build.</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script is:inline>
+      // Set the saved preference before paint. Storage is optional.
+      try {
+        if (localStorage.getItem('portfolio-effects') === 'off') document.documentElement.dataset.effects = 'off';
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#work">Skip to projects</a>
+    <header class="nav-wrap">
+      <nav class="nav-glass" aria-label="Main navigation">
+        <a class="wordmark" href="#top" data-home aria-label="Akashjeet Dutta, home">ad<span>.</span></a>
+        <div class="nav-links"><a href="#certificates">Journey</a><a href="#work">Work</a><a href="#about">Stack</a></div>
+        <button class="effects-toggle" id="effects-toggle" type="button" aria-pressed="true" aria-label="Turn off 3D effects" hidden>
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m10 2 2.1 5.9L18 10l-5.9 2.1L10 18l-2.1-5.9L2 10l5.9-2.1L10 2Z" stroke="currentColor" stroke-width="1.2"/></svg>
+          <span>3D on</span>
+        </button>
+      </nav>
+    </header>
+    <main>
+      <section class="intro" id="top" aria-label="Enter my workspace" data-name={portfolio.name}>
+        <div class="intro-stage">
+          <div class="stage-atmosphere" aria-hidden="true"></div>
+          <div class="hero-copy">
+            <p class="eyebrow"><span class="little-star">✳</span> A DEVELOPER’S WORKSPACE</p>
+            <p class="desk-heading">Every idea starts <span>somewhere.</span></p>
+            <p class="hero-line">This is my little corner of the internet.</p>
+            <a class="text-link hero-link" href="#hero">Step inside <span aria-hidden="true">↘</span></a>
+          </div>
+          <div id="laptop-scene" class="laptop-scene" aria-hidden="true"></div>
+          <div class="laptop-poster" aria-hidden="true">
+            <div class="poster-screen"><div class="poster-wallpaper"><span class="poster-kicker">HELLO, WORLD.</span><strong>Akashjeet<br />Dutta.</strong><small>A space for things I build.</small><div class="poster-dock"><i>⌘</i><i>⌨</i><i>↗</i><i>⌁</i></div></div></div>
+            <div class="poster-base"><div></div></div>
+          </div>
+          <div class="screen-landing" aria-hidden="true">
+            <div class="screen-aurora"></div>
+
+
+          </div>
+          <div class="intro-bottom"><span class="intro-location">AN EVER-EVOLVING PORTFOLIO</span><span class="scroll-cue"><span class="scroll-mouse"></span><span>Scroll to step inside</span></span><span class="intro-index">01 — 04</span></div>
+          <p class="render-note" id="render-note" hidden>Showing the lightweight view.</p>
+        </div>
+      </section>
+      <section class="profile-hero section-shell" id="hero" aria-labelledby="hero-title">
+        <p class="eyebrow"><span class="little-star">✳</span> {portfolio.role}</p>
+        <h1 id="hero-title">Akashjeet <span>Dutta.</span></h1>
+        <p class="profile-tagline">{portfolio.tagline}</p>
+        <p class="profile-intro">{portfolio.introduction}</p>
+        <a href="#certificates" class="pill-link">The journey so far <span aria-hidden="true">↓</span></a>
+        <span class="hero-coordinate" aria-hidden="true">LEARN → BUILD → REPEAT</span>
+      </section>
+      <section class="certificates-section section-shell" id="certificates" aria-labelledby="certificates-title">
+        <div class="section-heading"><div><p class="eyebrow"><span class="section-number">01</span> MILESTONES</p><h2 id="certificates-title">Proof of the<br /><span>hours put in.</span></h2></div><p class="section-aside">The first of many.<br />A collection that grows with me.</p></div>
+        <div class="certificate-grid">
+          {portfolio.certificates.map(certificate => <article class="certificate-card" data-tilt>
+            <div class="certificate-sheen" aria-hidden="true"></div>
+            <div class="certificate-top"><span class="eyebrow">{certificate.status}</span><span class="certificate-icon" aria-hidden="true">↗</span></div>
+            <div class="certificate-mark" aria-hidden="true">{certificate.mark}</div>
+            <h3>{certificate.title}</h3>
+            <p>{certificate.description}</p>
+            <div class="certificate-bottom"><span>{portfolio.name}</span>{certificate.file ? <a class="certificate-file" href={certificate.file} target="_blank" rel="noopener noreferrer">View certificate ↗</a> : <span class="pending-label">Certificate file coming soon</span>}{certificate.verifyUrl && <a class="certificate-file" href={certificate.verifyUrl} target="_blank" rel="noopener noreferrer">Verify ↗</a>}</div>
+          </article>)}
+
+        </div>
+      </section>
+      <section class="work-section section-shell" id="work" aria-labelledby="work-title">
+        <div class="section-heading"><div><p class="eyebrow"><span class="section-number">02</span> SELECTED WORK</p><h2 id="work-title">Built out of<br /><span>curiosity.</span></h2></div><p class="section-aside">Learning by making.<br />One project at a time.</p></div>
+        <article class="project-card" id="blindspot">
+          <div class="project-art" aria-label="Original concept illustration for BlindSpot, not an application screenshot" role="img">
+            <div class="art-topline"><span>BLINDSPOT</span><span>HUMAN PERSPECTIVES. MACHINE INTELLIGENCE.</span></div>
+            <div class="sight-orbit orbit-one"></div><div class="sight-orbit orbit-two"></div><div class="sight-orbit orbit-three"></div>
+            <div class="sight-line line-one"></div><div class="sight-line line-two"></div>
+            <div class="lens"><div class="lens-inner"><div class="lens-pupil"></div></div></div>
+            <span class="lens-node node-one"></span><span class="lens-node node-two"></span><span class="lens-node node-three"></span>
+            <div class="art-bottomline"><span class="art-label">A DIFFERENT POINT OF VIEW</span><span class="art-caption">CONCEPT ILLUSTRATION</span></div>
+          </div>
+          <div class="project-copy"><p class="eyebrow accent">{project.category}</p><div class="project-title-row"><h3>{project.title}</h3><span class="project-number">001</span></div><p class="project-description">{project.description}</p><ul class="tags" aria-label="Project themes">{project.tags.map(tag => <li>{tag}</li>)}</ul><button class="project-open" data-project-open type="button">Inside the project <span aria-hidden="true">↗</span></button></div>
+        </article>
+        <article class="next-project"><span class="plus-symbol" aria-hidden="true">⌘</span><div><h3>CS50P final project</h3><p>My first step from learning Python to building with it.</p></div><span>WALKTHROUGH COMING SOON</span></article>
+      </section>
+      <section class="about-section section-shell" id="about" aria-labelledby="about-title">
+        <div class="about-intro"><p class="eyebrow"><span class="section-number">03</span> THE TOOLKIT</p><h2 id="about-title">Just getting started.<br /><span>Already building.</span></h2><p>I’m Akashjeet, a first-year student exploring software, AI, and accessibility. {portfolio.introduction}</p></div>
+        <div class="toolkit"><p class="eyebrow">IN MY TOOLKIT</p><ul>{portfolio.tools.map((tool, i) => <li><span class="tool-symbol" aria-hidden="true">{['Py', 'Pg', 'S↗'][i]}</span><span>{tool}</span><span class="tool-plus" aria-hidden="true">+</span></li>)}</ul><p class="toolkit-note">Always room for something new.</p></div>
+      </section>
+      <footer class="footer section-shell"><div><a class="wordmark" href="#top" data-home aria-label="Back to top">ad<span>.</span></a><p>Built with curiosity. Made to grow.</p></div><a class="back-top" href="#top" data-home>Back to top <span aria-hidden="true">↑</span></a><span class="local-label">LOCAL PROTOTYPE · {portfolio.name}</span></footer>
+    </main>
+    <dialog id="project-dialog" aria-labelledby="dialog-title">
+      <div class="dialog-top"><span class="eyebrow">PROJECT / 001</span><button id="dialog-close" type="button" aria-label="Close project details">×</button></div><p class="eyebrow accent">{project.category}</p><h2 id="dialog-title">{project.title}</h2><p class="dialog-description">{project.description}</p><div class="dialog-detail"><h3>The idea</h3><p>{project.details}</p></div><div class="dialog-next"><span class="small-dot"></span><p>{project.next}</p></div><p class="dialog-footnote">This is a local portfolio preview. Project links and the full case study are still to be added.</p>
+    </dialog>
+    <script>import '../scripts/experience';</script>
+  </body>
+</html>
