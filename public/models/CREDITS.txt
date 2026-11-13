@@ -1,0 +1,47 @@
+3D WORKSPACE ASSET CREDITS
+
+The current device assets are free and self-hosted with the portfolio.
+
+MacBook Pro M3 16 inch 2024 by Jack Baeten
+https://sketchfab.com/jackbaeten
+https://sketchfab.com/3d-models/macbook-pro-m3-16-inch-2024-8e34fc2b303144f78490007d91ff57c4
+License: Creative Commons Attribution 4.0
+https://creativecommons.org/licenses/by/4.0/
+Downloaded optimized derivative: https://github.com/Riyaban583/3D-Apple-Website/blob/main/public/models/macbook-14.glb
+Mirror attribution: https://github.com/Riyaban583/3D-Apple-Website/blob/main/Macbook-14.jsx
+Local file: macbook-pro.glb
+Changes here: silver aluminum materials, resized for this desk, replaced screen artwork and display UVs.
+This is an artist-made MacBook model based on the M3 enclosure, not official M5 CAD.
+
+iPhone 17 Pro Max by MajdyModels (MG990)
+https://sketchfab.com/MG990
+https://sketchfab.com/3d-models/iphone-17-pro-max-87fc1df741384124a8ce0226d2b2058d
+License: Creative Commons Attribution 4.0
+https://creativecommons.org/licenses/by/4.0/
+Downloaded from: https://github.com/quentin-pla/phone-mockup-studio/blob/main/source/iphone_17_pro_max.glb
+Mirror attribution: https://github.com/quentin-pla/phone-mockup-studio/blob/main/CREDITS.md
+Local file: iphone-17-pro-max.glb
+Changes here: scale, face-up orientation, placement, graphite materials, refined glass,
+original lock-screen artwork, reprojected display UVs and screen emissive response.
+
+Logitech MX Master 3 3D Scan by robomo
+https://www.printables.com/model/1149616-logitech-mx-master-3-3d-scan/files
+License: Creative Commons Attribution 4.0
+https://creativecommons.org/licenses/by/4.0/
+Local file: mx-master-3-scan.stl (11,564 triangles)
+Changes here: alignment, scale and placement, smoothed vertex normals, and separate
+soft-touch shell and metal wheel finishes.
+
+Studio Small 08 HDRI by Sergej Majboroda / Poly Haven
+https://polyhaven.com/a/studio_small_08
+License: CC0 https://polyhaven.com/license
+Local file: ../environments/studio_small_08_1k.hdr
+
+Draco decoder: Google Draco authors, Apache License 2.0.
+Bundled from the installed Three.js distribution. See draco/README.md.
+https://github.com/google/draco
+https://www.apache.org/licenses/LICENSE-2.0
+
+Desk, lamp, coffee mug, notebook and pen: original procedural geometry.
+The mug has refined ceramic, rim, foot, handle and liquid geometry; it is not scanned.
+Device trademarks belong to their respective owners. This portfolio is not affiliated with Apple or Logitech.

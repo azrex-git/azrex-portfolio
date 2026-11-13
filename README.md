@@ -42,6 +42,8 @@ Use real artifacts when they are ready. The procedural laptop is an original pre
 
 ## Implementation approach
 
+The realistic desk update uses original product-referenced MacBook Pro, iPhone and MX Master recreations, plus a local CC0 studio environment. See [the scene asset record](docs/SCENE-ASSETS.md) for references, credits and the files to edit.
+
 - Astro provides the HTML structure and build pipeline.
 - TypeScript keeps the content and animation code explicit.
 - Three.js constructs the laptop from procedural geometry.

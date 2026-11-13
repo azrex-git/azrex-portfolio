@@ -39,6 +39,8 @@ This prototype does not require a paid 3D model, an image-generation subscriptio
 
 ## Assets and future changes
 
+The 8 November realism update adds one locally served CC0 HDR environment, **Studio Small 08** by Sergej Majboroda / Poly Haven (1,508,872 bytes). See [SCENE-ASSETS.md](SCENE-ASSETS.md) for its source, license, checksum, product references and rendering notes. All device and desk geometry and other surface textures remain original code; no package dependencies were added.
+
 The procedural laptop is authored in code. If external models, fonts, textures, sound, screenshots, or video are added later, record their creator, source URL, license, and any attribution requirement. A library's license does not grant rights to unrelated assets shown in its examples or documentation.
 
 Keep new dependencies purposeful. Before adding a library, identify the feature it enables, check compatibility with the pinned toolchain, review its package source and license, and measure the effect on the browser bundle. Re-run the project's check and build commands after changes. Dependency installation alone does not establish compatibility, accessibility, performance, or successful QA.

@@ -32,6 +32,7 @@ function reset() {
   container.style.opacity = '';
   bottom.style.opacity = '';
   landing.style.opacity = ''; landing.style.visibility = '';
+  document.querySelectorAll<HTMLElement>('[data-tilt]').forEach(card => { card.style.transform = ''; });
 }
 function updateToggle() {
   const enabled = isEnabled();
@@ -51,7 +52,9 @@ function fallback(error?: unknown) {
   if (error) console.warn('3D workspace unavailable; showing the lightweight portfolio.', error);
 }
 function presentProgress(p: number) {
+  const current = generation;
   scene?.setProgress(Math.min(1, p / 0.94));
+  if (current !== generation || !isEnabled()) return;
   copy.style.opacity = String(Math.max(0, 1 - p * 4));
   copy.inert = p > 0.25;
   copy.style.transform = `translateY(${-p * 65}px)`;
@@ -76,17 +79,30 @@ async function start() {
   const current = generation;
   const controller = new AbortController();
   pendingScene = controller;
+  let cancelStartup: (() => void) | undefined;
+  const cancelled = new Promise<never>((_, reject) => {
+    cancelStartup = () => reject(controller.signal.reason);
+    controller.signal.addEventListener('abort', cancelStartup, { once: true });
+  });
+  const deadline = window.setTimeout(() => {
+    controller.abort(new Error('The 3D workspace took too long to load.'));
+  }, 20000);
   try {
-    const [{ createLaptopScene }, { gsap }, { ScrollTrigger }] = await Promise.all([
+    const [{ createLaptopScene }, { gsap }, { ScrollTrigger }] = await Promise.race([Promise.all([
       import('./laptop-scene'), import('gsap'), import('gsap/ScrollTrigger'),
-    ]);
+    ]), cancelled]);
     if (current !== generation || !isEnabled()) return;
     gsap.registerPlugin(ScrollTrigger);
-    const created = await createLaptopScene(container, {
+    const loading = createLaptopScene(container, {
       name: intro.dataset.name!,
       signal: controller.signal,
       onError: (error) => { if (current === generation) fallback(error); },
+    }).then(created => {
+      // Decoding/compilation may finish after cancellation; never retain that scene.
+      if (controller.signal.aborted || current !== generation || !isEnabled()) created.dispose();
+      return created;
     });
+    const created = await Promise.race([loading, cancelled]);
     if (current !== generation || !isEnabled()) { created.dispose(); return; }
     pendingScene = undefined;
     scene = created;
@@ -99,6 +115,10 @@ async function start() {
     const bounds = intro.getBoundingClientRect();
     tween.progress(Math.max(0, Math.min(1, -bounds.top / Math.max(1, intro.offsetHeight - container.clientHeight))));
     render();
+    if (current !== generation || !isEnabled()) {
+      tween.scrollTrigger?.kill(); tween.kill();
+      return;
+    }
     const revealFrame = requestAnimationFrame(() => {
       if (current === generation) root.classList.add('scene-ready');
     });
@@ -118,6 +138,11 @@ async function start() {
       document.removeEventListener('visibilitychange', visibility);
     };
   } catch (error) { if (current === generation) fallback(error); }
+  finally {
+    window.clearTimeout(deadline);
+    if (cancelStartup) controller.signal.removeEventListener('abort', cancelStartup);
+    if (pendingScene === controller) pendingScene = undefined;
+  }
 }
 toggle.addEventListener('click', async () => {
   // Serialize renderer setup and its initial layout/scroll commit. Rapid clicks

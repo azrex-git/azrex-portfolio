@@ -32,3 +32,11 @@ html:not(.experience-static):not([data-effects=off]) .profile-hero .hero-coordin
 @media(max-width:600px){#hero{scroll-margin-top:-100px}}
 
 body{overflow-anchor:none}
+
+/* Keep the desk silhouette clear of the introduction on short laptop displays. */
+@media(max-height:800px) and (min-width:761px){
+  .hero-copy{top:15%}
+  .desk-heading{font-size:clamp(30px,3.4vw,44px);margin-top:12px}
+  .hero-copy .hero-line{margin-top:9px}
+  .hero-copy .hero-link{margin-top:10px}
+}
