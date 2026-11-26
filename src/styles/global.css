@@ -40,3 +40,6 @@ body{overflow-anchor:none}
   .hero-copy .hero-line{margin-top:9px}
   .hero-copy .hero-link{margin-top:10px}
 }
+
+/* Keep the complete course name readable on narrow certificate cards. */
+.certificate-mark{font-size:clamp(28px,5vw,54px);letter-spacing:-1.5px;line-height:1.15;overflow-wrap:normal}

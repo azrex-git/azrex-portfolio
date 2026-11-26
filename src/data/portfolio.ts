@@ -18,10 +18,10 @@ export const portfolio = {
     },
   ],
   certificates: [
-    { id: 'cs50p', mark: 'CS50P', title: 'Introduction to Programming with Python', description: 'One course. A foundation to keep building on.', status: 'Course completed', file: '', verifyUrl: '' },
+    { id: 'cs50p', mark: 'Harvard CS50P', title: 'Introduction to Programming with Python', description: 'One course. A foundation to keep building on.', status: 'Course completed', file: '', verifyUrl: '' },
   ],
   milestones: [
-    { title: 'CS50P', subtitle: 'Introduction to Programming with Python', type: 'Course completed', note: 'Certificate to be attached' },
+    { title: 'Harvard CS50P', subtitle: 'Introduction to Programming with Python', type: 'Course completed', note: 'Certificate to be attached' },
     { title: 'CS50P final project', subtitle: 'From learning Python to building with it.', type: 'Project completed', note: 'Project walkthrough coming next' },
   ],
 };
