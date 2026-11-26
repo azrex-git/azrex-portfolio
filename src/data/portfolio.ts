@@ -6,7 +6,7 @@ export const portfolio = {
   tagline: 'Building thoughtful software. Learning in public.',
   github: 'https://github.com/azrex-git',
   introduction: 'Curious about how things work. More curious about what I can make next.',
-  tools: ['Python', 'PostgreSQL', 'Supabase'],
+  tools: ['Python', 'PostgreSQL', 'Supabase', 'Agent Skills'],
   projects: [
     {
       id: 'blindspot',
