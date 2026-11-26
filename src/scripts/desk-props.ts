@@ -8,8 +8,15 @@ type PropResources = {
   instances: Set<THREE.InstancedMesh>;
 };
 
+export type DeskProps = {
+  notebook: THREE.Group;
+  mug: THREE.Group;
+  setNotebookPose: (amount: number, time: number) => void;
+  setMugPose: (amount: number, time: number) => void;
+};
+
 /** Original, physically scaled desk objects; all geometry and textures stay local. */
-export function createDeskProps(parent: THREE.Group, resources: PropResources): void {
+export function createDeskProps(parent: THREE.Group, resources: PropResources): DeskProps {
   const { geometry, material, canvasTexture } = resources;
   const mesh = (group: THREE.Object3D, shape: THREE.BufferGeometry, surface: THREE.Material,
     x = 0, y = 0, z = 0) => {
@@ -101,13 +108,18 @@ export function createDeskProps(parent: THREE.Group, resources: PropResources): 
     const join = mesh(mug, new THREE.SphereGeometry(.059, 16, 12), ceramic, x, y);
     join.scale.set(.7, 1.1, .94);
   }
-  const coffeeMat = physical({ color: 0x130903, roughness: .075, metalness: 0,
-    ior: 1.33, envMapIntensity: 1, specularIntensity: 1 });
+  const coffeeMat = physical({ color: 0x090502, roughness: .12, metalness: 0,
+    ior: 1.33, envMapIntensity: .42, specularIntensity: 1 });
   const coffeeProfile = [
     [.423, .873], [.421, .867], [.417, .863], [.410, .860],
     [.398, .8585], [.370, .858], [0, .858],
   ].map(([x, y]) => new THREE.Vector2(x, y));
-  const coffee = mesh(mug, new THREE.LatheGeometry(coffeeProfile, 96), coffeeMat);
+  const coffeeLevel = new THREE.Group();
+  coffeeLevel.position.y = .858;
+  mug.add(coffeeLevel);
+  const coffeeShape = new THREE.LatheGeometry(coffeeProfile, 96);
+  coffeeShape.translate(0, -.858, 0);
+  const coffee = mesh(coffeeLevel, coffeeShape, coffeeMat);
   coffee.castShadow = false;
 
   // A closed pocket notebook: overhanging cloth covers, individual ivory page
@@ -121,7 +133,15 @@ export function createDeskProps(parent: THREE.Group, resources: PropResources): 
   const bookCover = standard({ color: 0x313b3a, roughness: .91, bumpMap: cloth, bumpScale: .004 });
   const bookEdge = standard({ color: 0x25302e, roughness: .86 });
   mesh(notebook, roundedSlab(1.69, 2.28, .033, .075), bookCover, 0, .023, 0);
-  mesh(notebook, roundedSlab(1.69, 2.28, .043, .075), bookCover, 0, .227, 0);
+  // The hinge sits on the spine, so the cover moves as a solid object.
+  const coverHinge = new THREE.Group();
+  coverHinge.name = 'Notebook cover hinge';
+  coverHinge.position.set(-.794, .227, 0);
+  notebook.add(coverHinge);
+  const topCover = new THREE.Group();
+  topCover.position.set(.794, -.227, 0);
+  coverHinge.add(topCover);
+  mesh(topCover, roundedSlab(1.69, 2.28, .043, .075), bookCover, 0, .227, 0);
   const pageCanvas = makeCanvas(512, 256);
   const pageCtx = pageCanvas.getContext('2d')!;
   pageCtx.fillStyle = '#d5ceb9'; pageCtx.fillRect(0, 0, 512, 256);
@@ -132,6 +152,23 @@ export function createDeskProps(parent: THREE.Group, resources: PropResources): 
   const pageTexture = canvasTexture(pageCanvas);
   const pages = standard({ color: 0xe0dac9, roughness: .94, map: pageTexture });
   mesh(notebook, roundedSlab(1.60, 2.17, .172, .052), pages, .018, .126, 0);
+  const writingCanvas = makeCanvas(512, 768);
+  const writingCtx = writingCanvas.getContext('2d')!;
+  writingCtx.fillStyle = '#e8e1cf';
+  writingCtx.fillRect(0, 0, 512, 768);
+  writingCtx.fillStyle = '#817c6c';
+  writingCtx.font = '500 17px Arial, sans-serif';
+  writingCtx.fillText('SMALL IDEAS, BIG POSSIBILITIES.', 59, 91);
+  writingCtx.strokeStyle = 'rgba(127,135,130,.22)';
+  writingCtx.lineWidth = 1;
+  for (let row = 180; row < 710; row += 61) {
+    writingCtx.beginPath();
+    writingCtx.moveTo(53, row); writingCtx.lineTo(465, row); writingCtx.stroke();
+  }
+  const writingPage = mesh(notebook, new THREE.PlaneGeometry(1.53, 2.07),
+    standard({ color: 0xffffff, map: canvasTexture(writingCanvas), roughness: .96 }), .018, .214, 0);
+  writingPage.rotation.x = -Math.PI / 2;
+  writingPage.castShadow = false;
   // Explicit vertical edge planes keep the horizontal paper grain correctly scaled.
   const foreEdge = mesh(notebook, new THREE.PlaneGeometry(2.105, .166), pages, .821, .126, 0);
   foreEdge.rotation.y = Math.PI / 2;
@@ -141,9 +178,10 @@ export function createDeskProps(parent: THREE.Group, resources: PropResources): 
   lowerEdge.castShadow = upperEdge.castShadow = foreEdge.castShadow = false;
   box(notebook, .09, .205, 2.18, bookEdge, -.794, .125, 0, .043);
   const elastic = standard({ color: 0x141d1a, roughness: .98, bumpMap: cloth, bumpScale: .003 });
-  box(notebook, .069, .008, 2.225, elastic, .57, .254, 0, .003);
-  box(notebook, .069, .226, .01, elastic, .57, .135, 1.123, .004);
-  box(notebook, .069, .226, .01, elastic, .57, .135, -1.123, .004);
+  box(topCover, .069, .008, 2.225, elastic, .57, .254, 0, .003);
+  const frontElastic = box(topCover, .069, .226, .01, elastic, .57, .135, 1.123, .004);
+  const backElastic = box(topCover, .069, .226, .01, elastic, .57, .135, -1.123, .004);
+  const elasticEdges = [frontElastic, backElastic];
   const ribbon = standard({ color: 0x9d7955, roughness: .93 });
   const ribbonMesh = box(notebook, .047, .005, .33, ribbon, -.25, .004, 1.20, .002);
   ribbonMesh.rotation.y = -.22;
@@ -154,7 +192,7 @@ export function createDeskProps(parent: THREE.Group, resources: PropResources): 
   imprint.fillText('N O T E S', 256, 104);
   imprint.fillStyle = '#717e75'; imprint.font = '400 12px Arial, sans-serif';
   imprint.fillText('IDEAS / OBSERVATIONS / POSSIBILITIES', 256, 151);
-  const imprintPlane = mesh(notebook, new THREE.PlaneGeometry(1.12, .56),
+  const imprintPlane = mesh(topCover, new THREE.PlaneGeometry(1.12, .56),
     standard({ map: canvasTexture(imprintCanvas), transparent: true, depthWrite: false, roughness: .86 }), -.08, .252, -.40);
   imprintPlane.rotation.x = -Math.PI / 2; imprintPlane.castShadow = false;
   const pen = new THREE.Group();
@@ -166,6 +204,140 @@ export function createDeskProps(parent: THREE.Group, resources: PropResources): 
   mesh(pen, new THREE.CylinderGeometry(.019, .034, .16, 16), brushedMetal, 0, -.805, 0);
   mesh(pen, new THREE.ConeGeometry(.018, .05, 12), darkPlastic, 0, -.908, 0).rotation.z = Math.PI;
   box(pen, .022, .32, .017, brushedMetal, .041, .48, 0, .007);
+
+  // Sample the nib paths once. The same samples drive both pen and ink, without
+  // allocating geometry, textures or vectors during the animation.
+  const inkMaterial = standard({ color: 0x30494d, roughness: .98 });
+  const inkSegments = 240;
+  const inkSteps = 3;
+  const inkLines: THREE.Mesh[] = [];
+  const nibPaths: Float32Array[] = [];
+  for (let line = 0; line < inkSteps; line++) {
+    const points: THREE.Vector3[] = [];
+    for (let point = 0; point <= 72; point++) {
+      const u = point / 72;
+      const envelope = Math.sin(Math.PI * u) ** .35;
+      points.push(new THREE.Vector3(-.49 + .94 * u, .218,
+        -.51 + line * .33 + envelope * (.025 * Math.sin(u * Math.PI * 18)
+          + .015 * Math.sin(u * Math.PI * 29 + line))));
+    }
+    const curve = new THREE.CatmullRomCurve3(points);
+    const samples = new Float32Array((inkSegments + 1) * 3);
+    const point = new THREE.Vector3();
+    for (let index = 0; index <= inkSegments; index++) {
+      curve.getPointAt(index / inkSegments, point).toArray(samples, index * 3);
+    }
+    nibPaths.push(samples);
+    const shape = new THREE.TubeGeometry(curve, inkSegments, .0038, 4, false);
+    const ink = mesh(notebook, shape, inkMaterial);
+    ink.name = `Notebook ink stroke ${line + 1}`;
+    ink.castShadow = false;
+    ink.visible = false;
+    shape.setDrawRange(0, 0);
+    inkLines.push(ink);
+  }
+  const notebookHome = notebook.position.clone();
+  const notebookYaw = notebook.rotation.y;
+  const mugHome = mug.position.clone();
+  const mugYaw = mug.rotation.y;
+  const penHome = pen.position.clone();
+  const penRestRotation = pen.quaternion.clone();
+  const penAxis = new THREE.Vector3(.42, .85, .30).normalize();
+  const penWritingRotation = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), penAxis);
+  const penRestAxis = new THREE.Vector3(0, 1, 0).applyQuaternion(penRestRotation);
+  const nibHome = penHome.clone().addScaledVector(penRestAxis, -.933);
+  const currentPenAxis = new THREE.Vector3();
+  const nib = new THREE.Vector3();
+  const nextNib = new THREE.Vector3();
+  const movingNib = new THREE.Vector3();
+  const strokeDuration = 3.2;
+  const lineTravelDuration = 1.1;
+  const returnTravelDuration = 1.8;
+  const lineDuration = strokeDuration + lineTravelDuration;
+  const writingCycleDuration = lineDuration * (inkSteps - 1) + strokeDuration + returnTravelDuration;
+  const ease = (value: number, start = 0, end = 1) => {
+    const t = THREE.MathUtils.clamp((value - start) / (end - start), 0, 1);
+    return t * t * t * (t * (t * 6 - 15) + 10);
+  };
+  const sampleNib = (line: number, progress: number, target: THREE.Vector3) => {
+    const position = THREE.MathUtils.clamp(progress, 0, 1) * inkSegments;
+    const index = Math.min(Math.floor(position), inkSegments - 1);
+    const fraction = position - index;
+    const path = nibPaths[line];
+    const offset = index * 3;
+    target.set(
+      THREE.MathUtils.lerp(path[offset], path[offset + 3], fraction),
+      THREE.MathUtils.lerp(path[offset + 1], path[offset + 4], fraction),
+      THREE.MathUtils.lerp(path[offset + 2], path[offset + 5], fraction),
+    );
+  };
+
+  return {
+    notebook,
+    mug,
+    setNotebookPose(amount, time) {
+      const engagement = THREE.MathUtils.clamp(amount, 0, 1);
+      const lift = ease(engagement, 0, .72);
+      notebook.position.copy(notebookHome);
+      notebook.position.y += .18 * lift;
+      notebook.rotation.set(-.025 * lift, notebookYaw + .018 * lift, -.012 * lift);
+      coverHinge.rotation.z = 2.15 * ease(engagement, .20, .98);
+
+      // The elastic slips back over the cover edge before the hinge opens.
+      const elasticRelease = ease(engagement, 0, .20);
+      for (const edge of elasticEdges) {
+        edge.scale.y = 1 - .81 * elasticRelease;
+        edge.position.y = .135 + .092 * elasticRelease;
+      }
+
+      // The shared controller starts this clock once the pickup has settled.
+      const elapsed = Math.max(0, time - .15);
+      const cycle = elapsed % writingCycleDuration;
+      const line = Math.min(Math.floor(cycle / lineDuration), inkSteps - 1);
+      const lineTime = cycle - line * lineDuration;
+      sampleNib(line, ease(lineTime / strokeDuration), nib);
+      if (lineTime > strokeDuration) {
+        const travelDuration = line === inkSteps - 1 ? returnTravelDuration : lineTravelDuration;
+        const travel = ease((lineTime - strokeDuration) / travelDuration);
+        sampleNib((line + 1) % inkSteps, 0, nextNib);
+        nib.lerp(nextNib, travel);
+        nib.y += .13 * Math.sin(Math.PI * travel) ** 2;
+      }
+
+      // One broad pickup arc keeps the nib above and to the right of the cover
+      // sweep. Rotation spans the same motion, so reversal cannot snap the pen.
+      const pickup = ease(engagement);
+      const pickupArc = Math.sin(Math.PI * pickup) ** 2;
+      pen.quaternion.slerpQuaternions(penRestRotation, penWritingRotation, pickup);
+      currentPenAxis.set(0, 1, 0).applyQuaternion(pen.quaternion);
+      movingNib.lerpVectors(nibHome, nib, pickup);
+      movingNib.x += pickupArc;
+      movingNib.y += .85 * pickupArc;
+      pen.position.copy(movingNib).addScaledVector(currentPenAxis, .933);
+      for (let index = 0; index < inkSteps; index++) {
+        const written = ease((elapsed - index * lineDuration) / strokeDuration);
+        const ink = inkLines[index];
+        ink.visible = engagement > .24 && written > 0;
+        ink.geometry.setDrawRange(0, Math.floor(written * inkSegments) * 24);
+      }
+    },
+    setMugPose(amount, _time) {
+      const engagement = THREE.MathUtils.clamp(amount, 0, 1);
+      const lift = ease(engagement, 0, .78);
+      const reach = ease(engagement, .16, .90);
+      const tilt = ease(engagement, .34, .98);
+      const arc = Math.sin(Math.PI * engagement) ** 2;
+      mug.position.copy(mugHome);
+      mug.position.x += .055 * reach + .018 * arc;
+      mug.position.y += .34 * lift + .02 * arc;
+      mug.position.z += .09 * reach;
+      // On the way back this same sequence restores upright orientation before
+      // the cup descends through its final few centimetres onto the desk.
+      mug.rotation.set(.09 * tilt, mugYaw + .045 * reach, -.045 * tilt);
+      // Counter-rotate around the liquid's own centre, preserving a level surface.
+      coffeeLevel.quaternion.copy(mug.quaternion).invert();
+    },
+  };
 }
 
 function makeCanvas(width: number, height: number): HTMLCanvasElement {
@@ -198,4 +370,3 @@ function roundedSlab(width: number, depth: number, height: number, radius: numbe
   geometry.rotateX(-Math.PI / 2);
   return geometry;
 }
-

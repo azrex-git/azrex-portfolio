@@ -24,13 +24,18 @@ export function createDeskLamp(parent: THREE.Group, resources: Resources) {
   const diffuser = mesh(new RoundedBoxGeometry(1.49, .012, .16, 3, .005),
     material(new THREE.MeshBasicMaterial({ color: 0xffe6b6, toneMapped: false })), 3.45, 2.376, -2.02);
   diffuser.castShadow = false;
+  // The diffuser wraps around the front lip, making the switched-on lamp read
+  // from the elevated camera without a full-screen bloom pass.
+  const litEdge = mesh(new RoundedBoxGeometry(1.49, .009, .008, 2, .003),
+    diffuser.material, 3.45, 2.386, -1.902);
+  litEdge.castShadow = false;
   const joint = mesh(new THREE.CylinderGeometry(.065, .065, .11, 24), edge, 4.16, 2.39, -2.02);
   joint.rotation.x = Math.PI / 2;
   mesh(new THREE.CylinderGeometry(.055, .055, .004, 24), edge, 4.16, -.085, -1.80);
 
   const effects = new THREE.Group();
   effects.name = 'Warm desk lamp illumination';
-  const light = new THREE.SpotLight(0xffd7a0, 29, 8, .72, 1, 2);
+  const light = new THREE.SpotLight(0xffd7a0, 38, 8, .72, 1, 2);
   light.position.set(3.43, 2.35, -1.98);
   light.target.position.set(2.0, -.15, .4);
   light.castShadow = true;
@@ -39,7 +44,7 @@ export function createDeskLamp(parent: THREE.Group, resources: Resources) {
   light.shadow.bias = -.00015;
   light.shadow.camera.near = .15;
   light.shadow.camera.far = 8;
-  light.shadow.radius = 3;
+  light.shadow.radius = 4;
   effects.add(light, light.target);
 
   // No bloom pass or ray marcher: a single 48-sided shell gives a soft dust-in-air beam.

@@ -27,6 +27,20 @@ The environment is **Studio Small 08, 1K Radiance HDR**, by Sergej Majboroda / P
 - `src/scripts/laptop-scene.ts`: desk, laptop wallpaper, environment, lighting, camera and GPU resource disposal.
 - `src/scripts/experience.ts`: scrolling, effects toggle, presentation and startup lifecycle.
 
-The scene reuses its directional shadow map and two generated contact-shadow textures. Static world transforms are frozen after assembly. Rendering responds to scroll, pointer and viewport changes, and pauses outside the introduction or while the document is hidden. Pixel ratio is capped at 1.5 on desktop and 1.25 on narrow screens.
+The scene reuses its shadow maps and two generated contact-shadow textures. Static world transforms are frozen after assembly; the interactive mouse, notebook, mug and all their descendants retain matrix updates. Resting bounds provide stable hover targets. Raised surfaces can also retain hover, with exact surface checks so the space between the notebook's pen and cover does not intercept the mug.
+
+The mouse makes a wider browsing sweep with a visible turn, within bounds checked against the phone, laptop and mat. Notebook and mug engagement use critically damped motion that preserves velocity through hover reversals. The notebook rises slightly and opens over about two seconds; the pen follows one broad pickup arc with gradual rotation before lowering its nib onto a ruled page. Three sampled paths drive both pen movement and ink geometry, with 3.2-second strokes and eased lifts between lines. The mug rises before tilting and straightens before landing, while its coffee counter-rotates about the liquid's centre to stay level. Each pose reverses smoothly to rest, including when switching directly between props.
+
+Shadows refresh at up to 30 Hz during movement, plus the final settling frame. Interactive props have no baked shadow that could remain behind. The held mug stops rendering once it settles; mouse movement and notebook writing continue only during hover. Animation stops after returning to rest, on leaving the introduction, or while the document is hidden. Touch and reduced-motion mode do not trigger it. Pixel ratio is capped at 1.5 on desktop and 1.25 on narrow screens, with a 2.4-million-pixel drawing-buffer budget for larger displays.
+
+## Studio and motion refinement — 25 November 2026
+
+Three softbox panels are combined with the local HDR capture and baked once using [Three.js PMREM](https://threejs.org/docs/pages/PMREMGenerator.html). They produce broad reflections on silver aluminum, glazed ceramic and glass without extra per-frame lights, area-light lookup tables, bloom or ray tracing. Key/rim lighting and shadow softness are tuned together; the working lamp has a warm diffuser lip and a stronger pool of light. The desk uses a nonmetallic wood finish with a subtler bump texture.
+
+The laptop has a faint glass reflection that fades during the zoom. The phone display emits its artwork independently of lighting; its separate glass retains reflections. Materials that need a particular reflection intensity explicitly bind the environment map, because Three uses the scene intensity for implicit environment maps.
+
+Pointer input is coalesced into one hit test per rendered frame. Camera parallax is time-damped and returns gently to centre on pointer exit. The scroll dolly uses smootherstep, with zero acceleration at departure and arrival. Projection matrices update only when scroll progress or size changes. All of this retains on-demand rendering and the existing prop hover/cleanup lifecycle.
+
+For local profiling only, open `/?scene-debug`. An opt-in HUD reports continuous-motion frame intervals, CPU render-submission time, draw calls and pixel ratio. The HUD and query handling are removed from production builds; CPU submission timing is not GPU timing or a universal frame-rate guarantee.
 
 Startup has a 20-second cutoff that aborts loading and restores the HTML portfolio. Toggles serialize setup; aborted or late scenes are disposed, stale callbacks cannot restore presentation state, and reset clears card tilt. Reduced-motion preferences disable the 3D experience.

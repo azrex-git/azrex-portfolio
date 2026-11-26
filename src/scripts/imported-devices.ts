@@ -57,9 +57,10 @@ export async function createImportedMacBook(resources: AssetResources, wallpaper
     if (!(object instanceof THREE.Mesh)) return;
     const surface = object.material as THREE.MeshStandardMaterial;
     if (silver.has(surface.name)) {
-      surface.color.set(0xd4d7dc);
-      surface.metalness = .88;
-      surface.roughness = .32;
+      surface.color.set(0xd7dade);
+      surface.metalness = 1;
+      surface.roughness = .26;
+      surface.envMapIntensity = 1.1;
     }
   });
   laptop.updateMatrixWorld(true);
@@ -90,8 +91,16 @@ export async function createImportedMacBook(resources: AssetResources, wallpaper
   const lid = new THREE.Group();
   lid.position.copy(center);
   lid.rotation.x = tilt;
+  const screenReflection = resources.material(new THREE.MeshStandardMaterial({
+    color: 0xffffff, metalness: 1, roughness: .13, envMapIntensity: .8,
+    transparent: true, opacity: .10, depthWrite: false,
+  }));
+  const glass = new THREE.Mesh(resources.geometry(new THREE.PlaneGeometry(displayWidth, displayHeight)), screenReflection);
+  glass.position.z = .004;
+  glass.name = 'Subtle display glass reflection';
+  lid.add(glass);
   lid.updateMatrixWorld(true);
-  return { laptop, lid, displayWidth, displayHeight, displayCenter: new THREE.Vector3(), screenReflection: { opacity: 1 } };
+  return { laptop, lid, displayWidth, displayHeight, displayCenter: new THREE.Vector3(), screenReflection };
 }
 
 export async function createIPhone(resources: AssetResources, signal?: AbortSignal) {
@@ -145,10 +154,10 @@ export async function createIPhone(resources: AssetResources, signal?: AbortSign
         }
         display.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
         object.geometry = display;
-        object.material = resources.material(new THREE.MeshPhysicalMaterial({
-          map: lockScreen, emissiveMap: lockScreen, emissive: 0xffffff,
-          emissiveIntensity: .38, roughness: .18, metalness: 0,
-          clearcoat: 1, clearcoatRoughness: .1, envMapIntensity: .35, side: THREE.DoubleSide,
+        // The display emits its own artwork; its separate glass mesh supplies
+        // reflections. Lighting it like a painted surface washes out the image.
+        object.material = resources.material(new THREE.MeshBasicMaterial({
+          map: lockScreen, toneMapped: false, side: THREE.DoubleSide,
         }));
         object.castShadow = false;
       }

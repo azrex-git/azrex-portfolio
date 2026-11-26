@@ -124,17 +124,31 @@ async function start() {
     });
     const observer = new IntersectionObserver(([entry]) => scene?.setActive(entry.isIntersecting && !document.hidden));
     observer.observe(intro);
+    const desktopHover = matchMedia('(min-width: 768px) and (hover: hover) and (pointer: fine)');
     const pointer = (event: PointerEvent) => {
-      if (event.pointerType !== 'mouse') return;
-      scene?.setPointer((event.clientX / window.innerWidth - 0.5) * 2, (event.clientY / window.innerHeight - 0.5) * -2);
+      if (!desktopHover.matches || event.pointerType !== 'mouse' || (event.target instanceof Element && event.target.closest('a, button, dialog'))) {
+        scene?.clearPointer();
+        return;
+      }
+      const rect = container.getBoundingClientRect();
+      scene?.setPointer(((event.clientX - rect.left) / rect.width - .5) * 2,
+        (.5 - (event.clientY - rect.top) / rect.height) * 2);
     };
+    const leave = () => scene?.clearPointer();
+    desktopHover.addEventListener('change', leave);
+    const pointerOut = (event: PointerEvent) => { if (!event.relatedTarget) leave(); };
     const visibility = () => scene?.setActive(!document.hidden && intro.getBoundingClientRect().bottom > 0);
     window.addEventListener('pointermove', pointer, { passive: true });
+    window.addEventListener('pointerout', pointerOut);
+    window.addEventListener('blur', leave);
     document.addEventListener('visibilitychange', visibility);
     cleanupAnimation = () => {
+      desktopHover.removeEventListener('change', leave);
       cancelAnimationFrame(revealFrame); observer.disconnect();
       tween.scrollTrigger?.kill(); tween.kill();
       window.removeEventListener('pointermove', pointer);
+      window.removeEventListener('pointerout', pointerOut);
+      window.removeEventListener('blur', leave);
       document.removeEventListener('visibilitychange', visibility);
     };
   } catch (error) { if (current === generation) fallback(error); }

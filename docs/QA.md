@@ -75,3 +75,44 @@ Browser regression: eight rapid double-click sequences at the certificate sectio
 - `ASTRO_TELEMETRY_DISABLED=1 npm run check`: 0 errors, warnings or hints. Production build passes; Vite retains its large-chunk advisory for the lazily loaded 3D code.
 - Evidence: `screenshots/refined-desk-desktop.png` and `screenshots/refined-desk-mobile.png`.
 - These are functional and visual checks, not a measured 60 fps guarantee or exhaustive WebGL failure testing. The 20-second startup timeout and late-scene cleanup were reviewed in code.
+
+## Mouse hover interaction
+
+- Initial coordinate-only inspection confirmed hover detection but missed a frozen world matrix: the local position changed while the rendered mesh stayed still. This was corrected by keeping `matrixWorldAutoUpdate` enabled on the interactive mouse while freezing the other props.
+- Verified actual rendered movement in the browser after the correction, followed by a return to the resting pose after leaving the hover target. Movement and yaw were increased slightly for visibility. Evidence: `screenshots/mouse-hover-fixed.png`. Temporary inspection attributes were removed.
+- Switching 3D off removed the canvas and restored the static portfolio. Pointer listeners and the animation frame share the scene's existing cleanup lifecycle.
+- Hover pauses during the camera zoom and is mouse-input only. No new dependencies.
+
+## Notebook and mug hover — 14 November 2026
+
+- Notebook lifts, its hardcover pivots at the spine, and the pen moves clear before lowering onto a ruled page. The pen and three ink strokes share sampled paths. Mug lifts and tilts with a level coffee surface. All animated descendants retain world-matrix updates.
+- Browser verified the rendered notebook opening, writing motion, mug lift, and return to resting poses at 1280×720. Direct notebook-to-mug switching exposed an oversized hover bound; this was corrected with exact surface checks outside resting bounds and verified again.
+- Three rapid notebook → mug → mouse sequences returned all props to rest. Disabling 3D during hover removed the canvas and left the hero fully visible at top 0. No captured browser warnings/errors in the final clean test session.
+- `npm run check`: 10 files, zero errors, warnings or hints. Production build passed with the existing deferred-3D large-chunk advisory. No new dependencies or external assets.
+- Evidence: `screenshots/notebook-hover.png` and `screenshots/mug-hover.png`. Browser visual checks do not constitute a sustained frame-rate or physical-device Safari benchmark.
+
+## Hover motion refinement — 15 November 2026
+
+- Replaced fast exponential engagement with critically damped motion, preserving velocity when hover direction changes. Notebook cover finishes opening around 1.95 seconds; pen rotation is spread over the pickup arc, and writing starts around 2.2 seconds. Strokes take 3.2 seconds with eased lift/return paths.
+- Mug rises before tipping and returns upright before landing. Mouse target travel increased from 0.12 to 0.26 units horizontally and from 0.14 to 0.37 units in depth, with a stronger, slower turn. The chosen envelope was checked against device geometry and mat edges.
+- A numerical pen/cover clearance sweep found no intersections. A separate simulation of the actual engagement update at 30/60/120 Hz matched across rates, stayed within 0–1 through rapid reversals and returned to exact rest. These verify animation math, not rendering frame rate.
+- Browser inspected pickup, open writing, mug lift and return, mouse movement, and three rapid prop-switch sequences. Evidence: `screenshots/notebook-motion-refined.png`, `screenshots/mug-motion-refined.png`, `screenshots/mouse-motion-refined.png`.
+- Type check passed with zero errors/warnings/hints; build passed with the existing deferred-3D chunk-size advisory. No added dependencies.
+
+## Studio and camera polish — 25 November 2026
+
+- Kept Astro, Three.js and GSAP. Added a one-time softbox environment bake, tuned silver/glass/wood/coffee finishes, softened shadows and made the working lamp's diffuser and warm light clearer. Phone artwork now emits independently of scene lighting. No new dependencies, downloaded assets or paid services.
+- Camera parallax is time-damped and recentres on exit. Pointer hit tests consume the latest input once per frame. The dolly uses smootherstep; projection updates are skipped when progress and size are unchanged. A 2.4-million-pixel drawing-buffer budget bounds large-display fill-rate. Moving shadows refresh at up to 30 Hz; resting scenes remain on demand.
+- At 1280×720/DPR 1.5, prolonged mouse and notebook hover checks retained a 16.7 ms median frame interval. The final rolling 240-frame samples measured p95 intervals of 17.4 ms (mouse) and 17.6 ms (notebook), with CPU submission p95 of 2.6/2.9 ms. The baseline mouse sample was 16.7/17.6 ms and 2.6 ms CPU p95: this pass improves movement and appearance while retaining the observed cadence, not a demonstrated frame-rate increase. These are local preview observations, not GPU timings or a guarantee for Safari/physical phones.
+- Visually checked mouse movement, mug lift/level liquid, notebook opening/writing, direct prop switching, and return to rest. The idle counter remained at 4,285 frames across observations. Confirmed mid-zoom has one title layer; final hero top is 0, hero opacity 1 and outgoing canvas opacity 0.
+- Four rapid double-click toggle sequences at certificates alternated 0/1 canvases, kept the section at 108 px, and returned the toggle to non-busy. No warning/error messages were captured in the clean verification tab.
+- Responsive checks used a temporary local iframe harness, removed afterward: 390×844 has document width 390 and a 487×1055 drawing buffer; 3D-off has zero canvases and hero top 0. Re-enabling works. At 2560×1440, the drawing buffer is 2065×1161 (2,397,465 pixels), within budget. These validate layout/buffer size, not touch input or physical-device performance.
+- `astro check`: 11 files, zero errors, warnings or hints. Production build passed. Deferred scene bundle: 702,217 bytes raw / 181,219 bytes gzip. The existing >500 kB advisory remains. Verified the development HUD and its query flag are absent from production output. Optional local profiling: `/?scene-debug`.
+- Evidence: `screenshots/studio-before.png` and `screenshots/studio-polish-desktop.png`. All changes remain local; no push or publication was performed.
+
+## Retina clarity update — 25 November 2026
+
+- Following the first Cloudflare publication, replaced the 1.25× mobile / 1.5× desktop caps with device pixel ratio up to 3× and an 8-million-pixel ceiling. This supersedes the buffer limits above. Resolution changes only on resize; existing on-demand rendering and shadow throttling remain.
+- Calculated buffers: 390×844 at DPR 3 → 1170×2532; 430×932 at DPR 3 → 1290×2796; 1440×900 at DPR 2 → 2880×1800. Large screens stay below the total pixel ceiling.
+- Astro check passed (11 files, no diagnostics), production build passed with the existing scene chunk advisory, and diff whitespace check passed.
+- Physical-phone frame rate has not been measured at the increased resolution. Higher pixel counts improve clarity but increase GPU work; earlier performance measurements do not validate this new setting.
