@@ -3,7 +3,8 @@ export const portfolio = {
   name: 'Akashjeet Dutta',
   initials: 'ad',
   role: 'First-year student & developer',
-  tagline: 'A space for things I build.',
+  tagline: 'Building thoughtful software. Learning in public.',
+  github: 'https://github.com/azrex-git',
   introduction: 'Curious about how things work. More curious about what I can make next.',
   tools: ['Python', 'PostgreSQL', 'Supabase'],
   projects: [

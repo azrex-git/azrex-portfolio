@@ -635,16 +635,16 @@ function makeWallpaper(name: string): HTMLCanvasElement {
   const canvas = makeCanvas(1920, 1200);
   const ctx = canvas.getContext('2d')!;
   const base = ctx.createLinearGradient(0, 0, 1920, 1200);
-  base.addColorStop(0, '#060d26');
-  base.addColorStop(0.47, '#10194c');
-  base.addColorStop(1, '#060b20');
+  base.addColorStop(0, '#0b0d12');
+  base.addColorStop(0.47, '#20262e');
+  base.addColorStop(1, '#101419');
   ctx.fillStyle = base;
   ctx.fillRect(0, 0, 1920, 1200);
 
   const glows: [number, number, number, string][] = [
-    [330, 850, 930, 'rgba(40,101,255,0.80)'],
-    [1410, 170, 950, 'rgba(98,49,230,0.64)'],
-    [1400, 1020, 760, 'rgba(17,151,225,0.46)'],
+    [330, 850, 930, 'rgba(169,199,255,0.20)'],
+    [1410, 170, 950, 'rgba(205,213,225,0.12)'],
+    [1400, 1020, 760, 'rgba(169,199,255,0.10)'],
   ];
   for (const [x, y, radius, color] of glows) {
     const glow = ctx.createRadialGradient(x, y, 0, x, y, radius);
@@ -662,7 +662,7 @@ function makeWallpaper(name: string): HTMLCanvasElement {
     ctx.moveTo(-300, 1130 - u * 260);
     ctx.bezierCurveTo(250, 100 - u * 100, 760, 1390 - u * 540, 1250, 485 - u * 270);
     ctx.bezierCurveTo(1560, -140 - u * 160, 1700, 300, 2220, -250 + u * 110);
-    ctx.strokeStyle = `rgba(${Math.round(64 + u * 80)},${Math.round(117 + u * 35)},255,${0.024 + Math.sin(u * Math.PI) * 0.035})`;
+    ctx.strokeStyle = `rgba(${Math.round(64 + u * 80)},${Math.round(117 + u * 35)},225,${0.010 + Math.sin(u * Math.PI) * 0.014})`;
     ctx.lineWidth = 8 + u * 12;
     ctx.stroke();
   }
@@ -695,11 +695,11 @@ function makeWallpaper(name: string): HTMLCanvasElement {
     if (ctx.measureText(displayName).width <= 1570) break;
     fontSize -= 3;
   } while (fontSize > 45);
-  ctx.fillStyle = '#f5f7ff';
+  ctx.fillStyle = '#f3f0e9';
   ctx.fillText(displayName, 960, 618);
   ctx.fillStyle = 'rgba(229,236,255,0.75)';
   ctx.font = '30px -apple-system, BlinkMacSystemFont, sans-serif';
-  ctx.fillText('A space for things I build.', 960, 689);
+  ctx.fillText('Building thoughtful software. Learning in public.', 960, 689);
   ctx.fillStyle = 'rgba(224,235,255,0.52)';
   ctx.font = '18px -apple-system, BlinkMacSystemFont, sans-serif';
   ctx.fillText('SCROLL TO EXPLORE', 960, 1060);

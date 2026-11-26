@@ -1,6 +1,7 @@
 ---
 import { portfolio } from '../data/portfolio';
 import '../styles/global.css';
+import '../styles/studio.css';
 const project = portfolio.projects[0];
 ---
 <!doctype html>
@@ -9,7 +10,7 @@ const project = portfolio.projects[0];
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="Akashjeet Dutta — first-year student and developer. Exploring Python, accessibility, and the things worth building." />
-    <meta name="theme-color" content="#08090d" />
+    <meta name="theme-color" content="#0b0d12" />
     <title>Akashjeet Dutta — A space for things I build.</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <script is:inline>
@@ -43,7 +44,7 @@ const project = portfolio.projects[0];
           </div>
           <div id="laptop-scene" class="laptop-scene" aria-hidden="true"></div>
           <div class="laptop-poster" aria-hidden="true">
-            <div class="poster-screen"><div class="poster-wallpaper"><span class="poster-kicker">HELLO, WORLD.</span><strong>Akashjeet<br />Dutta.</strong><small>A space for things I build.</small><div class="poster-dock"><i>⌘</i><i>⌨</i><i>↗</i><i>⌁</i></div></div></div>
+            <div class="poster-screen"><div class="poster-wallpaper"><span class="poster-kicker">HELLO, WORLD.</span><strong>Akashjeet<br />Dutta.</strong><small>Building thoughtful software. Learning in public.</small><div class="poster-dock"><i>⌘</i><i>⌨</i><i>↗</i><i>⌁</i></div></div></div>
             <div class="poster-base"><div></div></div>
           </div>
           <div class="screen-landing" aria-hidden="true">
@@ -58,10 +59,13 @@ const project = portfolio.projects[0];
       <section class="profile-hero section-shell" id="hero" aria-labelledby="hero-title">
         <p class="eyebrow"><span class="little-star">✳</span> {portfolio.role}</p>
         <h1 id="hero-title">Akashjeet <span>Dutta.</span></h1>
-        <p class="profile-tagline">{portfolio.tagline}</p>
+        <p class="profile-tagline">{portfolio.tagline.split(/(?<=\.) /).map(sentence => <span>{sentence} </span>)}</p>
         <p class="profile-intro">{portfolio.introduction}</p>
-        <a href="#certificates" class="pill-link">The journey so far <span aria-hidden="true">↓</span></a>
-        <span class="hero-coordinate" aria-hidden="true">LEARN → BUILD → REPEAT</span>
+        <div class="hero-actions">
+          <a href="#work" class="hero-action hero-action-primary">Explore my work <span aria-hidden="true">↘</span></a>
+          <a href={portfolio.github} class="hero-action hero-action-secondary" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+        </div>
+
       </section>
       <section class="certificates-section section-shell" id="certificates" aria-labelledby="certificates-title">
         <div class="section-heading"><div><p class="eyebrow"><span class="section-number">01</span> MILESTONES</p><h2 id="certificates-title">Proof of the<br /><span>hours put in.</span></h2></div><p class="section-aside">The first of many.<br />A collection that grows with me.</p></div>
