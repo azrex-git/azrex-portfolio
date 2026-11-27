@@ -10,7 +10,7 @@ https://creativecommons.org/licenses/by/4.0/
 Downloaded optimized derivative: https://github.com/Riyaban583/3D-Apple-Website/blob/main/public/models/macbook-14.glb
 Mirror attribution: https://github.com/Riyaban583/3D-Apple-Website/blob/main/Macbook-14.jsx
 Local file: macbook-pro.glb
-Changes here: silver aluminum materials, resized for this desk, replaced screen artwork and display UVs.
+Changes here: silver aluminum materials, resized for this desk, neutral display material with the live HTML hero projected onto the screen.
 This is an artist-made MacBook model based on the M3 enclosure, not official M5 CAD.
 
 iPhone 17 Pro Max by MajdyModels (MG990)

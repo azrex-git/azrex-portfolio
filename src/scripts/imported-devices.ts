@@ -44,7 +44,7 @@ export async function loadDevice(url: string, resources: AssetResources, signal?
   return gltf.scene;
 }
 
-export async function createImportedMacBook(resources: AssetResources, wallpaper: THREE.CanvasTexture, signal?: AbortSignal) {
+export async function createImportedMacBook(resources: AssetResources, signal?: AbortSignal) {
   const laptop = await loadDevice('/models/macbook-pro.glb', resources, signal);
   laptop.name = 'MacBook Pro — Jack Baeten (CC BY 4.0), silver finish';
   laptop.scale.setScalar(4.18 / 35.483);
@@ -70,22 +70,10 @@ export async function createImportedMacBook(resources: AssetResources, wallpaper
   const center = screenBounds.getCenter(new THREE.Vector3());
   const size = screenBounds.getSize(new THREE.Vector3());
   const tilt = -Math.atan2(size.z, size.y);
-  const screenUp = new THREE.Vector3(0, Math.cos(tilt), Math.sin(tilt));
   const displayWidth = size.x;
   const displayHeight = Math.hypot(size.y, size.z);
-  // Reproject the screen UVs so the portfolio fills the display without stretching.
-  const shape = resources.geometry(screen.geometry.clone());
-  const positions = shape.getAttribute('position');
-  const uv = new Float32Array(positions.count * 2);
-  const point = new THREE.Vector3();
-  for (let i = 0; i < positions.count; i++) {
-    point.fromBufferAttribute(positions, i).applyMatrix4(screen.matrixWorld).sub(center);
-    uv[i * 2] = point.x / displayWidth + .5;
-    uv[i * 2 + 1] = point.dot(screenUp) / displayHeight + .5;
-  }
-  shape.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
-  screen.geometry = shape;
-  screen.material = resources.material(new THREE.MeshBasicMaterial({ map: wallpaper, toneMapped: false }));
+  // The screen's real HTML content is projected above this neutral backing.
+  screen.material = resources.material(new THREE.MeshBasicMaterial({ color: 0x0b0d12, toneMapped: false }));
   screen.castShadow = false;
   // World-space anchor keeps the existing scroll/camera interface intact.
   const lid = new THREE.Group();

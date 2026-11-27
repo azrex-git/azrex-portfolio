@@ -1,0 +1,42 @@
+/* One live hero surface: perspective on the laptop, identity transform on arrival. */
+.profile-hero { padding: 0; background: none; }
+.hero-surface {
+  width: 100%; min-height: 100svh; padding: 110px 20px 65px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; box-sizing: border-box; background: var(--studio-bg);
+}
+.hero-surface > .eyebrow { color: var(--studio-silver); letter-spacing: .18em; }
+html:not(.experience-static):not([data-effects=off]) .profile-hero {
+  display: block; position: relative; z-index: 8; width: 100%; max-width: none;
+  height: var(--screen-height, 100svh); min-height: 0;
+  margin-top: calc(-1 * var(--screen-height, 100svh)); padding: 0;
+  opacity: 1; background: none; pointer-events: none;
+}
+html:not(.experience-static):not([data-effects=off]) .hero-surface {
+  position: absolute; top: 0; left: 0; min-height: 0;
+  transform-origin: 0 0; visibility: hidden; overflow: hidden;
+  pointer-events: none; will-change: transform;
+}
+html.screen-projected:not(.experience-static):not([data-effects=off]) .hero-surface { visibility: visible; }
+html.screen-projected .hero-surface:not([inert]) { pointer-events: auto; }
+.experience-static .profile-hero, html[data-effects=off] .profile-hero {
+  padding: 0; display: block; min-height: 0;
+}
+@media (max-width: 600px) {
+  .hero-surface { padding: 105px 20px 55px; }
+}
+@media (max-height: 550px) and (min-width: 601px) {
+  .hero-surface { padding: 85px 20px 25px; }
+  .profile-hero h1 { font-size: clamp(38px, 6vw, 64px); margin-top: 12px; }
+  .profile-tagline { font-size: 19px; margin-top: 14px; }
+  .profile-intro { margin-top: 10px; }
+  .hero-actions { margin-top: 18px; }
+}
+
+/* The live screen shares the canvas's sticky coordinate system. */
+html:not(.experience-static):not([data-effects=off]) .intro-stage > .screen-content {
+  position: absolute; inset: 0; z-index: 3;
+  width: 100%; height: 100%; min-height: 0; margin: 0; padding: 0;
+  pointer-events: none;
+}
+.experience-static .screen-content, html[data-effects=off] .screen-content { display: none; }

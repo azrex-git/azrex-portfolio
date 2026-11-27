@@ -1,12 +1,16 @@
 import type { LaptopScene } from './laptop-scene';
+import { screenMatrix, type ScreenFrame } from './screen-projection';
 
 const root = document.documentElement;
 const intro = document.querySelector<HTMLElement>('.intro')!;
 const container = document.querySelector<HTMLElement>('#laptop-scene')!;
 const copy = document.querySelector<HTMLElement>('.hero-copy')!;
-const landing = document.querySelector<HTMLElement>('.screen-landing')!;
 const hero = document.querySelector<HTMLElement>('#hero')!;
-const bottom = document.querySelector<HTMLElement>('.intro-bottom')!;
+const heroSurface = hero.querySelector<HTMLElement>('.hero-surface')!;
+// Keep WebGL and its live HTML screen in the same compositor scroll layer.
+const screenHost = document.createElement('div');
+screenHost.className = 'screen-content profile-hero';
+container.parentElement!.append(screenHost);
 const toggle = document.querySelector<HTMLButtonElement>('#effects-toggle')!;
 const note = document.querySelector<HTMLElement>('#render-note')!;
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -24,14 +28,16 @@ function reset() {
   pendingScene?.abort(); pendingScene = undefined;
   cleanupAnimation?.(); cleanupAnimation = undefined;
   scene?.dispose(); scene = undefined;
-  root.classList.remove('scene-ready');
+  root.classList.remove('scene-ready', 'screen-projected');
+  root.style.removeProperty('--screen-height');
+  hero.append(heroSurface);
+  heroSurface.style.cssText = '';
+  heroSurface.inert = false;
   copy.style.cssText = '';
   copy.inert = false;
   hero.style.opacity = '';
   hero.inert = false;
   container.style.opacity = '';
-  bottom.style.opacity = '';
-  landing.style.opacity = ''; landing.style.visibility = '';
   document.querySelectorAll<HTMLElement>('[data-tilt]').forEach(card => { card.style.transform = ''; });
 }
 function updateToggle() {
@@ -53,19 +59,25 @@ function fallback(error?: unknown) {
 }
 function presentProgress(p: number) {
   const current = generation;
-  scene?.setProgress(Math.min(1, p / 0.94));
+  scene?.setProgress(p);
   if (current !== generation || !isEnabled()) return;
   copy.style.opacity = String(Math.max(0, 1 - p * 4));
   copy.inert = p > 0.25;
   copy.style.transform = `translateY(${-p * 65}px)`;
-  bottom.style.opacity = String(Math.max(0, 1 - p * 3));
-  const blend = Math.max(0, Math.min(1, (p - 0.76) / 0.14));
-  landing.style.opacity = String(blend);
-  landing.style.visibility = blend > 0 ? 'visible' : 'hidden';
-  // The outgoing screen is the only text layer; the incoming layer is just atmosphere.
-  container.style.opacity = String(1 - blend);
-  hero.style.opacity = String(Math.max(0, Math.min(1, (p - 0.90) / 0.10)));
-  hero.inert = p < 0.90;
+  // Both the scene and hero remain opaque. The camera supplies the projection.
+}
+function projectHero(frame: ScreenFrame) {
+  const { width, height, corners, progress } = frame;
+  if (heroSurface.style.width !== `${width}px` || heroSurface.style.height !== `${height}px`) {
+    root.style.setProperty('--screen-height', `${height}px`);
+    heroSurface.style.width = `${width}px`;
+    heroSurface.style.height = `${height}px`;
+  }
+  // No viewport/flow-box subtraction: the sticky parent scrolls both surfaces
+  // together, including Safari's asynchronous touch scrolling.
+  heroSurface.style.transform = screenMatrix(width, height, corners);
+  heroSurface.inert = progress < .999;
+  root.classList.add('screen-projected');
 }
 function syncPresentation() {
   if (!isEnabled()) return;
@@ -75,6 +87,8 @@ function syncPresentation() {
 async function start() {
   reset(); updateToggle(); note.hidden = true;
   if (!isEnabled()) return;
+  screenHost.append(heroSurface);
+  heroSurface.inert = true;
   syncPresentation();
   const current = generation;
   const controller = new AbortController();
@@ -94,7 +108,9 @@ async function start() {
     if (current !== generation || !isEnabled()) return;
     gsap.registerPlugin(ScrollTrigger);
     const loading = createLaptopScene(container, {
-      name: intro.dataset.name!,
+      onScreenFrame: frame => {
+        if (current === generation && isEnabled()) projectHero(frame);
+      },
       signal: controller.signal,
       onError: (error) => { if (current === generation) fallback(error); },
     }).then(created => {

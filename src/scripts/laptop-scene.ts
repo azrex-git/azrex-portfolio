@@ -6,9 +6,10 @@ import { createDeskProps } from './desk-props';
 import { createDeskLamp } from './desk-lamp';
 import { createIPhone, createImportedMacBook, createMXMaster } from './imported-devices';
 import { createSceneDiagnostics } from './scene-diagnostics';
+import type { ScreenFrame } from './screen-projection';
 
 type SceneOptions = {
-  name: string;
+  onScreenFrame: (frame: ScreenFrame) => void;
   signal?: AbortSignal;
   onReady?: () => void;
   onError?: (error: unknown) => void;
@@ -175,7 +176,7 @@ export async function createLaptopScene(
     rim.position.set(-3, 3.5, -5); scene.add(rim);
 
     const resources = { geometry, material, canvasTexture, instances };
-    const { laptop, lid, displayWidth, displayHeight, displayCenter, screenReflection } = await createImportedMacBook({ geometry, material, textures }, canvasTexture(makeWallpaper(options.name)), options.signal);
+    const { laptop, lid, displayWidth, displayHeight, displayCenter, screenReflection } = await createImportedMacBook({ geometry, material, textures }, options.signal);
     scene.add(laptop, lid);
     const rounded = (
       parent: THREE.Object3D, w: number, h: number, d: number,
@@ -267,6 +268,10 @@ export async function createLaptopScene(
     const screenCenter = lid.localToWorld(displayCenter.clone());
     const screenNormal = new THREE.Vector3(0, 0, 1).transformDirection(lid.matrixWorld);
     const screenUp = new THREE.Vector3(0, 1, 0).transformDirection(lid.matrixWorld);
+    const screenRight = new THREE.Vector3(1, 0, 0).transformDirection(lid.matrixWorld);
+    const screenPoints = Array.from({ length: 4 }, () => new THREE.Vector3());
+    const projectedCorners = Array.from({ length: 4 }, () => ({ x: 0, y: 0 }));
+    let screenUnit = 1;
     const bounds = new THREE.Box3().setFromObject(laptop).union(new THREE.Box3().setFromObject(desk));
     scene.add(lamp.effects);
     // Three uses scene.environmentIntensity for implicit maps. Bind the map on
@@ -313,7 +318,22 @@ export async function createLaptopScene(
         projectedProgress = t;
       }
       screenReflection.opacity = .10 * (1 - t);
-      desk.visible = progress < 0.98;
+      // Keep the physical desk present; it simply leaves the camera's view.
+      camera.updateMatrixWorld(true);
+    };
+    const publishScreen = () => {
+      // A uniform scale fits the SAME responsive HTML viewport inside the screen.
+      // On phones the sides of the laptop screen leave view during the zoom.
+      for (let i = 0; i < 4; i++) {
+        const x = i === 0 || i === 3 ? -.5 : .5;
+        const y = i < 2 ? .5 : -.5;
+        const p = screenPoints[i].copy(screenCenter)
+          .addScaledVector(screenRight, x * width * screenUnit)
+          .addScaledVector(screenUp, y * height * screenUnit).project(camera);
+        projectedCorners[i].x = (p.x + 1) * width / 2;
+        projectedCorners[i].y = (1 - p.y) * height / 2;
+      }
+      options.onScreenFrame({ width, height, corners: projectedCorners, progress });
     };
     const animateMouse = (dt: number) => {
       const hovering = hoveredProp === 'mouse' && progress < .25;
@@ -400,6 +420,7 @@ export async function createLaptopScene(
         }
         if (propsMoving) propsMoving = animateProps(performance.now());
         renderer!.render(scene, camera);
+        publishScreen();
         diagnostics?.record(started, performance.now() - started, propsMoving || cameraMoving);
         if (propsMoving || cameraMoving) invalidate();
       } catch (error) {
@@ -470,8 +491,9 @@ export async function createLaptopScene(
           Math.abs(corner.dot(up)) / (tanV * 0.69) + depth,
         );
       }
-      // Cover rather than contain at the end so HTML can replace the screen seamlessly.
-      endDistance = Math.min(displayHeight / (2 * tanV), displayWidth / (2 * tanH)) * 0.97;
+      // Match the projected HTML viewport exactly at the end of the camera move.
+      screenUnit = Math.min(displayWidth / width, displayHeight / height) * .985;
+      endDistance = height * screenUnit / (2 * tanV);
       invalidate();
     };
     // Hinges, pen, and coffee need changing world matrices as well as their parents.
@@ -495,6 +517,7 @@ export async function createLaptopScene(
     if (contextLost) throw new Error('The 3D context could not be initialized.');
     renderer.shadowMap.needsUpdate = true;
     renderer.render(scene, camera);
+    publishScreen();
     options.onReady?.();
 
     return {
@@ -627,83 +650,5 @@ function makeContactShadow(isMat: boolean) {
     stamp(.55, .15, 6.48, 3.63, 0, .04);
     stamp(4.16, -2.02, .64, .66, 0, .05);
   }
-  return canvas;
-}
-
-/** Original aurora artwork, drawn once; no animation, assets, or third-party logos. */
-function makeWallpaper(name: string): HTMLCanvasElement {
-  const canvas = makeCanvas(1920, 1200);
-  const ctx = canvas.getContext('2d')!;
-  const base = ctx.createLinearGradient(0, 0, 1920, 1200);
-  base.addColorStop(0, '#0b0d12');
-  base.addColorStop(0.47, '#20262e');
-  base.addColorStop(1, '#101419');
-  ctx.fillStyle = base;
-  ctx.fillRect(0, 0, 1920, 1200);
-
-  const glows: [number, number, number, string][] = [
-    [330, 850, 930, 'rgba(169,199,255,0.20)'],
-    [1410, 170, 950, 'rgba(205,213,225,0.12)'],
-    [1400, 1020, 760, 'rgba(169,199,255,0.10)'],
-  ];
-  for (const [x, y, radius, color] of glows) {
-    const glow = ctx.createRadialGradient(x, y, 0, x, y, radius);
-    glow.addColorStop(0, color);
-    glow.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = glow;
-    ctx.fillRect(0, 0, 1920, 1200);
-  }
-  // Layered curved ribbons have a deliberate, asymmetrical flow.
-  ctx.save();
-  ctx.globalCompositeOperation = 'screen';
-  for (let i = 0; i < 40; i++) {
-    const u = i / 39;
-    ctx.beginPath();
-    ctx.moveTo(-300, 1130 - u * 260);
-    ctx.bezierCurveTo(250, 100 - u * 100, 760, 1390 - u * 540, 1250, 485 - u * 270);
-    ctx.bezierCurveTo(1560, -140 - u * 160, 1700, 300, 2220, -250 + u * 110);
-    ctx.strokeStyle = `rgba(${Math.round(64 + u * 80)},${Math.round(117 + u * 35)},225,${0.010 + Math.sin(u * Math.PI) * 0.014})`;
-    ctx.lineWidth = 8 + u * 12;
-    ctx.stroke();
-  }
-  ctx.restore();
-  const vignette = ctx.createRadialGradient(960, 560, 120, 960, 560, 1200);
-  vignette.addColorStop(0, 'rgba(2,7,22,0.08)');
-  vignette.addColorStop(1, 'rgba(2,7,22,0.55)');
-  ctx.fillStyle = vignette;
-  ctx.fillRect(0, 0, 1920, 1200);
-
-  // A few quiet interface details, deliberately not an imitation operating system.
-  ctx.strokeStyle = 'rgba(228,235,255,0.16)';
-  ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(66, 88); ctx.lineTo(1854, 88); ctx.stroke();
-  ctx.fillStyle = 'rgba(238,244,255,0.72)';
-  ctx.font = '19px -apple-system, BlinkMacSystemFont, sans-serif';
-  ctx.textAlign = 'left';
-  ctx.fillText('PERSONAL SPACE', 70, 57);
-  ctx.textAlign = 'right';
-  ctx.fillText('BUILD · LEARN · REPEAT', 1850, 57);
-
-  ctx.textAlign = 'center';
-  ctx.fillStyle = 'rgba(221,231,255,0.68)';
-  ctx.font = '21px -apple-system, BlinkMacSystemFont, sans-serif';
-  ctx.fillText('HELLO, I’M', 960, 480);
-  let fontSize = 108;
-  const displayName = name.trim() || 'Your name';
-  do {
-    ctx.font = `500 ${fontSize}px -apple-system, BlinkMacSystemFont, sans-serif`;
-    if (ctx.measureText(displayName).width <= 1570) break;
-    fontSize -= 3;
-  } while (fontSize > 45);
-  ctx.fillStyle = '#f3f0e9';
-  ctx.fillText(displayName, 960, 618);
-  ctx.fillStyle = 'rgba(229,236,255,0.75)';
-  ctx.font = '30px -apple-system, BlinkMacSystemFont, sans-serif';
-  ctx.fillText('Building thoughtful software. Learning in public.', 960, 689);
-  ctx.fillStyle = 'rgba(224,235,255,0.52)';
-  ctx.font = '18px -apple-system, BlinkMacSystemFont, sans-serif';
-  ctx.fillText('SCROLL TO EXPLORE', 960, 1060);
-  ctx.strokeStyle = 'rgba(224,235,255,0.45)';
-  ctx.beginPath(); ctx.moveTo(960, 1084); ctx.lineTo(960, 1121); ctx.stroke();
   return canvas;
 }
