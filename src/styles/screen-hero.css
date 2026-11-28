@@ -40,3 +40,43 @@ html:not(.experience-static):not([data-effects=off]) .intro-stage > .screen-cont
   pointer-events: none;
 }
 .experience-static .screen-content, html[data-effects=off] .screen-content { display: none; }
+
+/* Fit the complete hero into the landscape display, keeping every element
+   visible. All sizing grows continuously into the existing mobile hero. */
+@media (max-width: 600px) and (orientation: portrait) {
+  .screen-content .hero-surface {
+    padding: calc(6px + 99px * var(--screen-expand, 1)) 20px calc(6px + 49px * var(--screen-expand, 1));
+  }
+  .screen-content .hero-surface > * { flex-shrink: 0; }
+  .screen-content .hero-surface > .eyebrow {
+    font-size: calc(5px + 3px * var(--screen-expand, 1));
+  }
+  .screen-content .hero-surface > .eyebrow .little-star {
+    font-size: calc(6px + 6px * var(--screen-expand, 1));
+  }
+  .screen-content h1 {
+    --compact-title: clamp(28px, 8.7vw, 52px);
+    font-size: calc(var(--compact-title) + (clamp(49px, 12.8vw, 72px) - var(--compact-title)) * var(--screen-expand, 1));
+    margin-top: calc(7px + 21px * var(--screen-expand, 1));
+  }
+  .screen-content .profile-tagline {
+    font-size: calc(10px + 10px * var(--screen-expand, 1));
+    margin-top: calc(7px + 17px * var(--screen-expand, 1));
+  }
+  .screen-content .profile-intro {
+    font-size: calc(7px + 6px * var(--screen-expand, 1));
+    margin-top: calc(5px + 13px * var(--screen-expand, 1));
+  }
+  .screen-content .hero-actions {
+    width: min(100%, calc(180px + 150px * var(--screen-expand, 1)));
+    gap: calc(4px + 6px * var(--screen-expand, 1));
+    margin-top: calc(8px + 20px * var(--screen-expand, 1));
+  }
+  .screen-content .hero-action {
+    font-size: calc(7px + 5px * var(--screen-expand, 1));
+    min-height: calc(20px + 30px * var(--screen-expand, 1));
+    padding: calc(4px + 9px * var(--screen-expand, 1)) calc(8px + 10px * var(--screen-expand, 1));
+    border-radius: calc(5px + 7px * var(--screen-expand, 1));
+  }
+  .screen-content .hero-action span { font-size: calc(9px + 9px * var(--screen-expand, 1)); }
+}

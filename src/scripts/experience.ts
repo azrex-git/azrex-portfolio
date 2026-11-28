@@ -67,9 +67,13 @@ function presentProgress(p: number) {
   // Both the scene and hero remain opaque. The camera supplies the projection.
 }
 function projectHero(frame: ScreenFrame) {
-  const { width, height, corners, progress } = frame;
+  const { width, height, viewportHeight, expansion, corners, progress } = frame;
+  const stageHeight = `${viewportHeight}px`;
+  if (root.style.getPropertyValue('--screen-height') !== stageHeight) {
+    root.style.setProperty('--screen-height', stageHeight);
+  }
+  heroSurface.style.setProperty('--screen-expand', String(expansion));
   if (heroSurface.style.width !== `${width}px` || heroSurface.style.height !== `${height}px`) {
-    root.style.setProperty('--screen-height', `${height}px`);
     heroSurface.style.width = `${width}px`;
     heroSurface.style.height = `${height}px`;
   }

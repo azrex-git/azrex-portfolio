@@ -2,6 +2,8 @@ export type ScreenPoint = { x: number; y: number };
 export type ScreenFrame = {
   width: number;
   height: number;
+  viewportHeight: number;
+  expansion: number;
   /** Clockwise: top left, top right, bottom right, bottom left. */
   corners: readonly ScreenPoint[];
   progress: number;
@@ -25,4 +27,13 @@ export function screenMatrix(width: number, height: number, points: readonly Scr
   ];
   if (!matrix.every(Number.isFinite)) throw new Error('Invalid laptop screen projection');
   return `matrix3d(${matrix.join(',')})`;
+}
+
+/** Keep a wide, complete hero on the physical screen until the camera is close. */
+export function screenLayout(width: number, height: number, displayAspect: number, progress: number) {
+  const mobile = width <= 600 && height > width;
+  const t = mobile ? Math.max(0, Math.min(1, (progress - .5) / .5)) : 1;
+  const expansion = t * t * t * (t * (t * 6 - 15) + 10);
+  const compactHeight = width / displayAspect;
+  return { height: mobile ? compactHeight + (height - compactHeight) * expansion : height, expansion };
 }

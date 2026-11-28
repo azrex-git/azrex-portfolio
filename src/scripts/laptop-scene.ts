@@ -6,7 +6,7 @@ import { createDeskProps } from './desk-props';
 import { createDeskLamp } from './desk-lamp';
 import { createIPhone, createImportedMacBook, createMXMaster } from './imported-devices';
 import { createSceneDiagnostics } from './scene-diagnostics';
-import type { ScreenFrame } from './screen-projection';
+import { screenLayout, type ScreenFrame } from './screen-projection';
 
 type SceneOptions = {
   onScreenFrame: (frame: ScreenFrame) => void;
@@ -322,18 +322,20 @@ export async function createLaptopScene(
       camera.updateMatrixWorld(true);
     };
     const publishScreen = () => {
-      // A uniform scale fits the SAME responsive HTML viewport inside the screen.
-      // On phones the sides of the laptop screen leave view during the zoom.
+      // Start with a landscape layout on phones, then expand the same HTML
+      // surface into the portrait hero. The physical display height stays fixed.
+      const layout = screenLayout(width, height, displayWidth / displayHeight, progress);
+      const unit = Math.min(displayWidth / width, displayHeight / layout.height) * .985;
       for (let i = 0; i < 4; i++) {
         const x = i === 0 || i === 3 ? -.5 : .5;
         const y = i < 2 ? .5 : -.5;
         const p = screenPoints[i].copy(screenCenter)
-          .addScaledVector(screenRight, x * width * screenUnit)
-          .addScaledVector(screenUp, y * height * screenUnit).project(camera);
+          .addScaledVector(screenRight, x * width * unit)
+          .addScaledVector(screenUp, y * layout.height * unit).project(camera);
         projectedCorners[i].x = (p.x + 1) * width / 2;
         projectedCorners[i].y = (1 - p.y) * height / 2;
       }
-      options.onScreenFrame({ width, height, corners: projectedCorners, progress });
+      options.onScreenFrame({ width, height: layout.height, viewportHeight: height, expansion: layout.expansion, corners: projectedCorners, progress });
     };
     const animateMouse = (dt: number) => {
       const hovering = hoveredProp === 'mouse' && progress < .25;
@@ -491,6 +493,8 @@ export async function createLaptopScene(
           Math.abs(corner.dot(up)) / (tanV * 0.69) + depth,
         );
       }
+      // A slightly tighter establishing shot gives the phone screen more space.
+      if (width <= 600 && height > width) startDistance *= .85;
       // Match the projected HTML viewport exactly at the end of the camera move.
       screenUnit = Math.min(displayWidth / width, displayHeight / height) * .985;
       endDistance = height * screenUnit / (2 * tanV);
